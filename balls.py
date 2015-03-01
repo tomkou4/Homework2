@@ -16,6 +16,64 @@ def Init(sz):
     screen = pygame.display.set_mode(sz)
     screenrect = screen.get_rect()
 
+class Universe:
+    '''Game universe'''
+    
+    def __init__(self, msec, tickevent = pygame.USEREVENT):
+        '''Run a universe with msec tick'''
+        self.msec = msec
+        self.tickevent = tickevent
+    
+    def Start(self):
+        '''Start running'''
+        pygame.time.set_timer(self.tickevent, self.msec)
+    
+    def Finish(self):
+        '''Shut down an universe'''
+        pygame.time.set_timer(self.tickevent, 0)
+
+
+class Ball:
+    '''Simple ball class'''
+    
+    def __init__(self, filename, pos = (0.0, 0.0), speed = (0.0, 0.0)):
+        '''Create a ball from image'''
+        self.fname = filename
+        self.surface = pygame.image.load(filename)
+        self.rect = self.surface.get_rect()
+        self.speed = speed
+        self.pos = pos
+        self.newpos = pos
+        self.active = True
+    
+    def draw(self, surface):
+        surface.blit(self.surface, self.rect)
+    
+    def action(self):
+        '''Proceed some action'''
+        if self.active:
+            self.pos = self.pos[0]+self.speed[0], self.pos[1]+self.speed[1]
+    
+    def logic(self, surface):
+        x,y = self.pos
+        dx, dy = self.speed
+        if x < self.rect.width/2:
+            x = self.rect.width/2
+            dx = -dx
+        elif x > surface.get_width() - self.rect.width/2:
+            x = surface.get_width() - self.rect.width/2
+            dx = -dx
+        if y < self.rect.height/2:
+            y = self.rect.height/2
+            dy = -dy
+        elif y > surface.get_height() - self.rect.height/2:
+            y = surface.get_height() - self.rect.height/2
+            dy = -dy
+        self.pos = x,y
+        self.speed = dx,dy
+        self.rect.center = intn(*self.pos)
+
+
 class GameMode:
     '''Basic game mode class'''
     def __init__(self):
@@ -40,61 +98,6 @@ class GameMode:
         '''What to do when entering this mode'''
         pass
 
-class Ball:
-    '''Simple ball class'''
-
-    def __init__(self, filename, pos = (0.0, 0.0), speed = (0.0, 0.0)):
-        '''Create a ball from image'''
-        self.fname = filename
-        self.surface = pygame.image.load(filename)
-        self.rect = self.surface.get_rect()
-        self.speed = speed
-        self.pos = pos
-        self.newpos = pos
-        self.active = True
-
-    def draw(self, surface):
-        surface.blit(self.surface, self.rect)
-
-    def action(self):
-        '''Proceed some action'''
-        if self.active:
-            self.pos = self.pos[0]+self.speed[0], self.pos[1]+self.speed[1]
-
-    def logic(self, surface):
-        x,y = self.pos
-        dx, dy = self.speed
-        if x < self.rect.width/2:
-            x = self.rect.width/2
-            dx = -dx
-        elif x > surface.get_width() - self.rect.width/2:
-            x = surface.get_width() - self.rect.width/2
-            dx = -dx
-        if y < self.rect.height/2:
-            y = self.rect.height/2
-            dy = -dy
-        elif y > surface.get_height() - self.rect.height/2:
-            y = surface.get_height() - self.rect.height/2
-            dy = -dy
-        self.pos = x,y
-        self.speed = dx,dy
-        self.rect.center = intn(*self.pos)
-
-class Universe:
-    '''Game universe'''
-
-    def __init__(self, msec, tickevent = pygame.USEREVENT):
-        '''Run a universe with msec tick'''
-        self.msec = msec
-        self.tickevent = tickevent
-
-    def Start(self):
-        '''Start running'''
-        pygame.time.set_timer(self.tickevent, self.msec)
-
-    def Finish(self):
-        '''Shut down an universe'''
-        pygame.time.set_timer(self.tickevent, 0)
 
 class GameWithObjects(GameMode):
 
@@ -140,15 +143,16 @@ class GameWithDnD(GameWithObjects):
                     self.drag.pos = event.pos
                     self.drag.speed = event.rel
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-            self.drag.active = True
-            self.drag = None
+            if self.drag != None:
+                self.drag.active = True
+                self.drag = None
         GameWithObjects.Events(self, event)
 
 Init(SIZE)
 Game = Universe(50)
 
 Run = GameWithDnD()
-for i in xrange(5):
+for i in xrange(2):
     x, y = random.randrange(screenrect.w), random.randrange(screenrect.h)
     dx, dy = 1+random.random()*5, 1+random.random()*5
     Run.objects.append(Ball("ball.gif",(x,y),(dx,dy)))
