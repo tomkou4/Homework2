@@ -36,7 +36,7 @@ class Universe:
 class Ball:
     '''Simple ball class'''
     
-    def __init__(self, filename, pos = (0.0, 0.0), speed = (0.0, 0.0)):
+    def __init__(self, filename, pos = (0.0, 0.0), speed = (0.0, 0.0), gravity = 5):
         '''Create a ball from image'''
         self.fname = filename
         self.surface = pygame.image.load(filename)
@@ -45,6 +45,7 @@ class Ball:
         self.pos = pos
         self.newpos = pos
         self.active = True
+        self.gravity = gravity
     
     def draw(self, surface):
         surface.blit(self.surface, self.rect)
@@ -52,6 +53,7 @@ class Ball:
     def action(self):
         '''Proceed some action'''
         if self.active:
+            self.speed = (self.speed[0]*0.99, self.speed[1]+self.gravity)
             self.pos = self.pos[0]+self.speed[0], self.pos[1]+self.speed[1]
     
     def logic(self, surface):
@@ -128,7 +130,6 @@ class GameWithDnD(GameWithObjects):
 
     def __init__(self, *argp, **argn):
         GameWithObjects.__init__(self, *argp, **argn)
-        self.oldpos = 0,0
         self.drag = None
 
     def Events(self, event):
@@ -137,7 +138,6 @@ class GameWithDnD(GameWithObjects):
             if click:
                 self.drag = click[0]
                 self.drag.active = False
-                self.oldpos = event.pos
         elif event.type == pygame.MOUSEMOTION and event.buttons[0]:
                 if self.drag:
                     self.drag.pos = event.pos
@@ -152,7 +152,7 @@ Init(SIZE)
 Game = Universe(50)
 
 Run = GameWithDnD()
-for i in xrange(2):
+for i in xrange(1):
     x, y = random.randrange(screenrect.w), random.randrange(screenrect.h)
     dx, dy = 1+random.random()*5, 1+random.random()*5
     Run.objects.append(Ball("ball.gif",(x,y),(dx,dy)))
