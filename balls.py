@@ -3,6 +3,7 @@
 
 import pygame
 import random
+import math
 
 SIZE = 640, 480
 
@@ -75,6 +76,11 @@ class Ball:
         self.speed = dx,dy
         self.rect.center = intn(*self.pos)
 
+    def collision(self, other_ball):
+        if math.sqrt((self.rect.center[0]-other_ball.rect.center[0])**2 + (self.rect.center[1]-other_ball.rect.center[1])**2) <= self.rect.height:
+            self.speed = (-self.speed[0],-self.speed[1])
+            other_ball.speed = (-other_ball.speed[0],-other_ball.speed[1])
+
 
 class GameMode:
     '''Basic game mode class'''
@@ -120,6 +126,7 @@ class GameWithObjects(GameMode):
         GameMode.Logic(self, surface)
         for obj in self.objects:
             obj.logic(surface)
+        self.objects[0].collision(self.objects[1])
 
     def Draw(self, surface):
         GameMode.Draw(self, surface)
@@ -152,7 +159,7 @@ Init(SIZE)
 Game = Universe(50)
 
 Run = GameWithDnD()
-for i in xrange(1):
+for i in xrange(2):
     x, y = random.randrange(screenrect.w), random.randrange(screenrect.h)
     dx, dy = 1+random.random()*5, 1+random.random()*5
     Run.objects.append(Ball("ball.gif",(x,y),(dx,dy)))
